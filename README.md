@@ -7,6 +7,12 @@ wind_FinFeas_df.csv - offshore wind\
 AC_fish_FinFeas_df.csv - finfish aquaculture\
 AC_sw_FinFeas_df.csv - seaweed aquaculture
 
+## Columns
+Wind_suitability - environmental suitability for offshore wind farms at each grid cell
+AC_fish_suitability - environmental suitability for offshore finfish aquaculture at each grid cell
+AC_sw_suitability - environmental suitability for offshore seaweed aquaculture at each grid cell
+Financial_feasibility - inverted financial risk values to represent financial feasibility for offshore industries at each grid cell
+
 BS_gpkg - Bass Strait shapefile
 
 ### Outputs
