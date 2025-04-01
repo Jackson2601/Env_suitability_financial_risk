@@ -2,12 +2,12 @@
 
 ## 05c_Alternate_scenarios_Bass_Strait.R
 
-### Inputs
+## Inputs
 wind_FinFeas_df.csv - offshore wind\
 AC_fish_FinFeas_df.csv - finfish aquaculture\
 AC_sw_FinFeas_df.csv - seaweed aquaculture
 
-## Columns
+#### Columns
 Wind_suitability - environmental suitability for offshore wind farms at each grid cell
 AC_fish_suitability - environmental suitability for offshore finfish aquaculture at each grid cell
 AC_sw_suitability - environmental suitability for offshore seaweed aquaculture at each grid cell
