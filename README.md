@@ -7,7 +7,12 @@ wind_FinFeas_df.csv - offshore wind\
 AC_fish_FinFeas_df.csv - finfish aquaculture\
 AC_sw_FinFeas_df.csv - seaweed aquaculture
 
-#### Columns
+wind_fish_BS_prj - projected raster used to generate figure 1. Represents wind farm suitability
+AC_fish_BS_prj - projected raster used to generate figure 1. Represents finfish aquaculture suitability
+AC_sw_BS_prj - projected raster used to generate figure 1. Represents seaweed aquaculture suitability
+FinRisk_BS_01 - raster representing financial risk for offshore industries within Bass Strait. Values scaled to between 0 and 1
+
+#### Dataframe columns
 Wind_suitability - environmental suitability for offshore wind farms at each grid cell
 AC_fish_suitability - environmental suitability for offshore finfish aquaculture at each grid cell
 AC_sw_suitability - environmental suitability for offshore seaweed aquaculture at each grid cell
