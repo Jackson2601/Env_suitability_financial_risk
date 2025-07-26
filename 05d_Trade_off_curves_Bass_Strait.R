@@ -14,6 +14,8 @@ library(tidyverse)
 library(here)
 library(sf)
 library(patchwork)
+library(png)
+library(grid)
 
 #--------------------------#
 
@@ -103,6 +105,9 @@ for (ialpha in 1:nalphvals){
 # # Save 'dat_temp'
 # write_csv(dat_temp, here('output/dataframes/wind_obj_df.csv'))
 
+# Convert response to percentage
+dat_opt$windfarm_outcome_perc <- (dat_opt$windfarm_outcome/max(dat_opt$windfarm_outcome))*100
+dat_opt$finances_outcome_perc <- (dat_opt$finances_outcome/max(dat_opt$finances_outcome))*100
 
 # ### Run objective function on points within the wind farm declared areas
 # 
@@ -129,11 +134,17 @@ for (ialpha in 1:nalphvals){
 # wind_decl_suit <- sum(wind_decl_pts$Wind_suitability)
 # wind_decl_FinFeas <- sum(wind_decl_pts$Financial_feasibility)
 
+# Import wind farm symbol
+wind_img <- readPNG(here('data/wind-power.png'))
+wind_grob <- rasterGrob(wind_img, interpolate = TRUE)
+wind_bud_img <- readPNG(here('data/dollar.png'))
+wind_bud_grob <- rasterGrob(wind_bud_img, interpolate = TRUE)
+
 # Plot
 pareto_wind <- 
   ggplot(dat_opt) +
-  aes(x = windfarm_outcome, y = finances_outcome, color = alpha) +
-  geom_point(size = 2) +
+  aes(x = windfarm_outcome_perc, y = finances_outcome_perc, color = alpha) +
+  geom_point(size = 4) +
   geom_line(col = 'black') +
   # annotate(geom = 'point', x = wind_decl_suit,
   #          y = wind_decl_FinFeas, col = 'red', size = 2) +
@@ -145,7 +156,9 @@ pareto_wind <-
   theme_classic() +
   theme(axis.title = element_blank(),
         axis.text = element_text(size = 15)) +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  annotation_custom(wind_grob, xmin = 60, xmax = 65, ymin = 92, ymax = 94) +
+  annotation_custom(wind_bud_grob, xmin = 60, xmax = 61.5, ymin = 88, ymax = 100)
 pareto_wind
 
 # Save
@@ -206,14 +219,22 @@ for (ialpha in 1:nalphvals){
   dat_opt_AC_fish$iPU[ialpha] <- dat_temp_AC_fish$iPU
 }
 
+# Convert response to percentage
+dat_opt_AC_fish$AC_fish_outcome_perc <- (dat_opt_AC_fish$AC_fish_outcome/max(dat_opt_AC_fish$AC_fish_outcome))*100
+dat_opt_AC_fish$finances_outcome_perc <- (dat_opt_AC_fish$finances_outcome/max(dat_opt_AC_fish$finances_outcome))*100
+
 # # Save 'dat_temp_AC_fish'
 # write_csv(dat_temp_AC_fish, here('output/dataframes/AC_fish_obj_df.csv'))
+
+# Import fish symbol
+fish_img <- readPNG(here('data/fish.png'))
+fish_grob <- rasterGrob(fish_img, interpolate = TRUE)
 
 # Plot
 pareto_AC_fish <- 
   ggplot(dat_opt_AC_fish) +
-  aes(x = AC_fish_outcome, y = finances_outcome, color = alpha) +
-  geom_point(size = 2) +
+  aes(x = AC_fish_outcome_perc, y = finances_outcome_perc, color = alpha) +
+  geom_point(size = 4) +
   geom_line(col = 'black') +
   # annotate(geom = 'text', x = 800, y = 925,
   #          label = 'b', size = 8) +
@@ -222,7 +243,8 @@ pareto_AC_fish <-
   theme(axis.title.x = element_text(size = 20),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 15)) +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  annotation_custom(fish_grob, xmin = 85, xmax = 90, ymin = 90, ymax = 93)
 pareto_AC_fish
 
 # Save
@@ -281,14 +303,22 @@ for (ialpha in 1:nalphvals){
   dat_opt_AC_sw$iPU[ialpha] <- dat_temp_AC_sw$iPU
 }
 
+# Convert response to percentage
+dat_opt_AC_sw$AC_sw_outcome_perc <- (dat_opt_AC_sw$AC_sw_outcome/max(dat_opt_AC_sw$AC_sw_outcome))*100
+dat_opt_AC_sw$finances_outcome_perc <- (dat_opt_AC_sw$finances_outcome/max(dat_opt_AC_sw$finances_outcome))*100
+
 # # Save 'dat_temp_AC_fish'
 # write_csv(dat_temp_AC_sw, here('output/dataframes/AC_sw_obj_df.csv'))
+
+# Import seaweed symbol
+sw_img <- readPNG(here('data/seaweed.png'))
+sw_grob <- rasterGrob(sw_img, interpolate = TRUE)
 
 # Plot
 pareto_AC_sw <- 
   ggplot(dat_opt_AC_sw) +
-  aes(x = AC_sw_outcome, y = finances_outcome, color = alpha) +
-  geom_point(size = 2) +
+  aes(x = AC_sw_outcome_perc, y = finances_outcome_perc, color = alpha) +
+  geom_point(size = 4) +
   geom_line(col = 'black') +
   # annotate(geom = 'text', x = 810, y = 800,
   #          label = 'c', size = 8) +
@@ -298,7 +328,8 @@ pareto_AC_sw <-
         axis.title.y = element_blank(),
         axis.text = element_text(size = 15),
         legend.title = element_text(size = 20),
-        legend.text = element_text(size = 15))
+        legend.text = element_text(size = 15)) +
+  annotation_custom(sw_grob, xmin = 67, xmax = 70, ymin = 90, ymax = 93)
 pareto_AC_sw
 
 # Save
@@ -313,7 +344,7 @@ pareto_all <- pareto_wind + pareto_AC_fish + pareto_AC_sw + plot_layout(ncol = 2
 # Add labels
 pareto_all <- 
   pareto_all + plot_annotation(tag_levels = 'a') &
-  theme(plot.tag = element_text(size = 15))
+  theme(plot.tag = element_text(size = 25))
 
 # # Shared x axis
 # pareto_all_x <-
@@ -328,7 +359,7 @@ pareto_all <-
 # Shared y label
 pareto_all_y <-
   wrap_elements(panel = pareto_all) +
-  labs(tag = 'Financial feasibility\n') +
+  labs(tag = 'Cumulative conflict risk (inverted)') +
   theme(
     plot.tag = element_text(size = 20, angle = 90),
     plot.tag.position = 'left'
@@ -338,6 +369,82 @@ pareto_all_y
 # Save
 #ggsave(here('output/figures/pareto_all_x.png'), pareto_all_x)
 ggsave(here('output/figures/pareto_all_y.png'), pareto_all_y, width = 16, height = 9)
+
+
+# Find the change in suitability with change in risk
+dat_opt$marginal_tradeoff <- c(NA, diff(dat_opt$finances_outcome_perc) / diff(dat_opt$windfarm_outcome_perc))
+dat_opt_AC_fish$marginal_tradeoff <- c(NA, diff(dat_opt_AC_fish$finances_outcome_perc) / diff(dat_opt_AC_fish$AC_fish_outcome_perc))
+dat_opt_AC_sw$marginal_tradeoff <- c(NA, diff(dat_opt_AC_sw$finances_outcome_perc) / diff(dat_opt_AC_sw$AC_sw_outcome_perc))
+
+# Mean change for aquaculture
+mean(dat_opt_AC_fish$marginal_tradeoff, na.rm = TRUE) # -4.406802
+mean(dat_opt_AC_sw$marginal_tradeoff, na.rm = TRUE) # -2.786621
+
+# Check marginal change at low and high alpha values for offshore wind
+early <- head(dat_opt, floor(nrow(dat_opt) * 0.3))
+late <- tail(dat_opt, floor(nrow(dat_opt) * 0.3))
+mean(early$marginal_tradeoff, na.rm = TRUE) # -0.1018525
+mean(late$marginal_tradeoff, na.rm = TRUE) # -9.956998
+
+
+
+# ### Find summary stats for low and high alpha values
+# 
+# ## Wind
+# 
+# # Get outcomes for different alphas
+# wind_risk_0 <- dat_opt$finances_outcome_perc[dat_opt$alpha == 0]
+# wind_risk_05 <- dat_opt$finances_outcome_perc[near(dat_opt$alpha, 0.5)]
+# wind_risk_1 <- dat_opt$finances_outcome_perc[dat_opt$alpha == 1]
+# wind_suit_0 <- dat_opt$windfarm_outcome_perc[dat_opt$alpha == 0]
+# wind_suit_05 <- dat_opt$windfarm_outcome_perc[near(dat_opt$alpha, 0.5)]
+# wind_suit_1 <- dat_opt$windfarm_outcome_perc[dat_opt$alpha == 1]
+# 
+# # Calculate the change at low alphas
+# wind_risk_0 - wind_risk_05 # 1.652768
+# wind_suit_05 - wind_suit_0 # 38.64247
+# 
+# # Calculate the change at high alphas
+# wind_risk_05 - wind_risk_1 # 10.70302
+# wind_suit_1 - wind_suit_05 # 2.043569
+# 
+# 
+# ## Aquaculture - finfish
+# 
+# # Get outcomes for different alphas
+# AC_fish_risk_0 <- dat_opt_AC_fish$finances_outcome_perc[dat_opt_AC_fish$alpha == 0]
+# AC_fish_risk_05 <- dat_opt_AC_fish$finances_outcome_perc[near(dat_opt_AC_fish$alpha, 0.5)]
+# AC_fish_risk_1 <- dat_opt_AC_fish$finances_outcome_perc[dat_opt_AC_fish$alpha == 1]
+# AC_fish_suit_0 <- dat_opt_AC_fish$AC_fish_outcome_perc[dat_opt_AC_fish$alpha == 0]
+# AC_fish_suit_05 <- dat_opt_AC_fish$AC_fish_outcome_perc[near(dat_opt_AC_fish$alpha, 0.5)]
+# AC_fish_suit_1 <- dat_opt_AC_fish$AC_fish_outcome_perc[dat_opt_AC_fish$alpha == 1]
+# 
+# # Calculate the change at low alphas
+# AC_fish_risk_0 - AC_fish_risk_05 # 2.008845
+# AC_fish_suit_05 - AC_fish_suit_0 # 7.605651
+# 
+# # Calculate the change at high alphas
+# AC_fish_risk_05 - AC_fish_risk_1 # 16.42207
+# AC_fish_suit_1 - AC_fish_suit_05 # 5.949364
+# 
+# 
+# ## Aquaculture - seaweed
+# 
+# # Get outcomes for different alphas
+# risk_0 <- dat_opt_AC_sw$finances_outcome_perc[dat_opt_AC_sw$alpha == 0]
+# risk_05 <- dat_opt_AC_sw$finances_outcome_perc[near(dat_opt_AC_sw$alpha, 0.5)]
+# risk_1 <- dat_opt_AC_sw$finances_outcome_perc[dat_opt_AC_sw$alpha == 1]
+# suit_0 <- dat_opt_AC_sw$AC_sw_outcome_perc[dat_opt_AC_sw$alpha == 0]
+# suit_05 <- dat_opt_AC_sw$AC_sw_outcome_perc[near(dat_opt_AC_sw$alpha, 0.5)]
+# suit_1 <- dat_opt_AC_sw$AC_sw_outcome_perc[dat_opt_AC_sw$alpha == 1]
+# 
+# # Calculate the change at low alphas
+# risk_0 - risk_05 # 12.34883
+# suit_05 - suit_0 # 31.32146
+# 
+# # Calculate the change at high alphas
+# risk_05 - risk_1 # 3.563753
+# suit_1 - suit_05 # 2.139746
 
 
 #
@@ -719,120 +826,120 @@ pareto_wind
 ggsave(here('output/figures/pareto_AC_plot.png'), pareto_AC)
 
 
-#
-# Algorithmic optimisation approach 
-#
-niter <- 1000
-
-dat_temp_opt <- dat_temp
-dat_temp_opt$x <- 0
-
-# Randomly initialize the x values
-dat_temp_opt$x[sample(dat_temp_opt$iPU, nPU_budget)] <- 1
-
-# Save outcomes for each alpha
-outcomes_all <- NULL
-
-# Set alpha
-# alpha <- 0.5 # will need to rerun for all alphas
-for (ialpha in 1:nalphvals){
-  alpha <- alphvals[ialpha]
-  
-  # Initialize a dataframe to store the outcome values for the current alpha
-  outcome_vals <- data.frame(AC_sw = numeric(niter), finances = numeric(niter), obj_vals = numeric(niter))
-  
-  for (iter in 1:niter){
-    
-    # calculate the objective function
-    dat_temp_opt$obj_vals <- obj(dat_temp_opt, alpha)
-    dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
-    
-    # calculate outcome for a given alpha 
-    outcome_temp <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)  
-    
-    # simple algorithm
-    ioff <- sample(which(dat_temp_opt$x == 1), 1)
-    ion <- sample(which(dat_temp_opt$x == 0), 1)
-    
-    # calculate the new outcome
-    dat_temp_opt$x[ioff] <- 0
-    dat_temp_opt$x[ion] <- 1
-    
-    dat_temp_opt$obj_vals <- obj(dat_temp_opt, alpha)
-    dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
-    outcome_temp_new <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)
-    
-    # if the new outcome is better than the old outcome, keep the new solution
-    if (outcome_temp_new > outcome_temp){
-      dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
-    } else {
-      # if the new outcome is worse than the old outcome, keep the old solution
-      dat_temp_opt$x[ioff] <- 1
-      dat_temp_opt$x[ion] <- 0
-    }
-    
-    outcome_vals$AC_sw[iter] <- sum(dat_temp_opt$AC_sw * dat_temp_opt$x)
-    outcome_vals$finances[iter] <- sum(dat_temp_opt$finances * dat_temp_opt$x)
-    outcome_vals$obj_vals[iter] <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)
-    print(outcome_temp)
-  }
-  
-  outcomes_all[[ialpha]] <- outcome_vals
-  
-}
-
-# Get the optimal solution
-AC_sw_outcome_algorithmic <- sum(dat_temp_opt$AC_potential * dat_temp_opt$x)
-finances_outcome_algorithmic <- sum(dat_temp_opt$Financial_risk_inv * dat_temp_opt$x)
-
-
-#
-# Generate some random plans to compare to the pareto frontier
-#
-nrand <- 5000
-dat_rand <- data.frame(AC_outcome = rep(NA, nrand), 
-                       finances_outcome = rep(NA, nrand))
-
-for (irand in 1:nrand){
-  dat_temp <- dat
-  
-  iselected <- sample(dat_temp$iPU, nPU_budget, replace = TRUE)
-  dat_temp$x <- 0
-  dat_temp$x[iselected] <- 1
-  dat_rand$AC_outcome[irand] <- sum(dat_temp$AC_sw * dat_temp$x)
-  dat_rand$finances_outcome[irand] <- sum(dat_temp$finances * dat_temp$x)
-  rm(dat_temp)
-}
-
-# Dat policy decision default
-dat_temp <- AC_sw_risk_df
-dat_temp$x <- 0
-dat_temp$x[1:nPU_budget] <- 1
-dat_default <- data.frame(AC_sw_outcome = sum(dat_temp$AC_potential * dat_temp$x),
-                          finances_outcome = sum(dat_temp$Financial_risk_inv * dat_temp$x))
-
-# Plot Pareto frontier
-ggplot(dat_opt) +
-  aes(x = AC_sw_outcome, y = finances_outcome, color = alpha) +
-  geom_point() +
-  geom_line() + 
-  # geom_point(data = dat_rand, 
-  #            aes(x = windfarm_outcome, y = finances_outcome), 
-  #            color = "grey") +
-  # geom_point(data = dat_default,
-  #            aes(x = windfarm_outcome, y = finances_outcome),
-  #            color = "red") +
-  annotate(geom = 'point', x = AC_sw_outcome_algorithmic, 
-           y = finances_outcome_algorithmic, color = "green") +
-  xlab("Env. suitability") +
-  ylab("Financial risk") +
-  theme_classic()
-
-
-# Plot convergence of algorithm
-ggplot(outcome_vals) +
-  aes(x = 1:niter, y = obj_vals) +
-  geom_line() +
-  xlab("Iteration") +
-  ylab("Objective function value") +
-  theme_classic()
+# #
+# # Algorithmic optimisation approach 
+# #
+# niter <- 1000
+# 
+# dat_temp_opt <- dat_temp
+# dat_temp_opt$x <- 0
+# 
+# # Randomly initialize the x values
+# dat_temp_opt$x[sample(dat_temp_opt$iPU, nPU_budget)] <- 1
+# 
+# # Save outcomes for each alpha
+# outcomes_all <- NULL
+# 
+# # Set alpha
+# # alpha <- 0.5 # will need to rerun for all alphas
+# for (ialpha in 1:nalphvals){
+#   alpha <- alphvals[ialpha]
+#   
+#   # Initialize a dataframe to store the outcome values for the current alpha
+#   outcome_vals <- data.frame(AC_sw = numeric(niter), finances = numeric(niter), obj_vals = numeric(niter))
+#   
+#   for (iter in 1:niter){
+#     
+#     # calculate the objective function
+#     dat_temp_opt$obj_vals <- obj(dat_temp_opt, alpha)
+#     dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
+#     
+#     # calculate outcome for a given alpha 
+#     outcome_temp <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)  
+#     
+#     # simple algorithm
+#     ioff <- sample(which(dat_temp_opt$x == 1), 1)
+#     ion <- sample(which(dat_temp_opt$x == 0), 1)
+#     
+#     # calculate the new outcome
+#     dat_temp_opt$x[ioff] <- 0
+#     dat_temp_opt$x[ion] <- 1
+#     
+#     dat_temp_opt$obj_vals <- obj(dat_temp_opt, alpha)
+#     dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
+#     outcome_temp_new <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)
+#     
+#     # if the new outcome is better than the old outcome, keep the new solution
+#     if (outcome_temp_new > outcome_temp){
+#       dat_temp_opt$ranked <- nPU - rank(dat_temp_opt$obj_vals)+1
+#     } else {
+#       # if the new outcome is worse than the old outcome, keep the old solution
+#       dat_temp_opt$x[ioff] <- 1
+#       dat_temp_opt$x[ion] <- 0
+#     }
+#     
+#     outcome_vals$AC_sw[iter] <- sum(dat_temp_opt$AC_sw * dat_temp_opt$x)
+#     outcome_vals$finances[iter] <- sum(dat_temp_opt$finances * dat_temp_opt$x)
+#     outcome_vals$obj_vals[iter] <- sum(dat_temp_opt$obj_vals * dat_temp_opt$x)
+#     print(outcome_temp)
+#   }
+#   
+#   outcomes_all[[ialpha]] <- outcome_vals
+#   
+# }
+# 
+# # Get the optimal solution
+# AC_sw_outcome_algorithmic <- sum(dat_temp_opt$AC_potential * dat_temp_opt$x)
+# finances_outcome_algorithmic <- sum(dat_temp_opt$Financial_risk_inv * dat_temp_opt$x)
+# 
+# 
+# #
+# # Generate some random plans to compare to the pareto frontier
+# #
+# nrand <- 5000
+# dat_rand <- data.frame(AC_outcome = rep(NA, nrand), 
+#                        finances_outcome = rep(NA, nrand))
+# 
+# for (irand in 1:nrand){
+#   dat_temp <- dat
+#   
+#   iselected <- sample(dat_temp$iPU, nPU_budget, replace = TRUE)
+#   dat_temp$x <- 0
+#   dat_temp$x[iselected] <- 1
+#   dat_rand$AC_outcome[irand] <- sum(dat_temp$AC_sw * dat_temp$x)
+#   dat_rand$finances_outcome[irand] <- sum(dat_temp$finances * dat_temp$x)
+#   rm(dat_temp)
+# }
+# 
+# # Dat policy decision default
+# dat_temp <- AC_sw_risk_df
+# dat_temp$x <- 0
+# dat_temp$x[1:nPU_budget] <- 1
+# dat_default <- data.frame(AC_sw_outcome = sum(dat_temp$AC_potential * dat_temp$x),
+#                           finances_outcome = sum(dat_temp$Financial_risk_inv * dat_temp$x))
+# 
+# # Plot Pareto frontier
+# ggplot(dat_opt) +
+#   aes(x = AC_sw_outcome, y = finances_outcome, color = alpha) +
+#   geom_point() +
+#   geom_line() + 
+#   # geom_point(data = dat_rand, 
+#   #            aes(x = windfarm_outcome, y = finances_outcome), 
+#   #            color = "grey") +
+#   # geom_point(data = dat_default,
+#   #            aes(x = windfarm_outcome, y = finances_outcome),
+#   #            color = "red") +
+#   annotate(geom = 'point', x = AC_sw_outcome_algorithmic, 
+#            y = finances_outcome_algorithmic, color = "green") +
+#   xlab("Env. suitability") +
+#   ylab("Financial risk") +
+#   theme_classic()
+# 
+# 
+# # Plot convergence of algorithm
+# ggplot(outcome_vals) +
+#   aes(x = 1:niter, y = obj_vals) +
+#   geom_line() +
+#   xlab("Iteration") +
+#   ylab("Objective function value") +
+#   theme_classic()
