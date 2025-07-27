@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+author: "Caitie"
+date: "2025-07-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(terra)
+library(tmap)
+library(raster)
+library(biscale)
+library(cowplot)
+```
+
+```{r}
+bs_r<-rast(here("Bass_Strait.tif"))
+```
+
+
+```{r}
+wind<-vect(here("wind_FinFeas_sf.gpkg"))
+wind_fin_r<-rasterize(wind, bs_r, field = "Financial_feasibility")
+```
+
