@@ -19,11 +19,11 @@ library(ggplot2)
 
 ```{r}
 wind<-read.csv(here("wind_FinRisk_df.csv")) %>% 
-  select(-geometry)
+  dplyr::select(-geometry)
 aqua_fish<-read.csv(here("AC_fish_FinRisk_df.csv")) %>% 
-  select(-geometry)
+  dplyr::select(-geometry)
 aqua_sw<-read.csv(here("AC_sw_FinRisk_df.csv")) %>% 
-  select(-geometry)
+  dplyr::select(-geometry)
 ```
 
 # Wind
@@ -52,7 +52,17 @@ balance<- wind %>%
          cumsum = cumsum(Financial_feasibility),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_wind<-rbind(pfin,penv,balance) %>% 
+random<-wind %>% 
+  mutate(select = sample(nrow(wind))) %>%
+  arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(Financial_feasibility),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+
+
+all_wind<-rbind(pfin,penv,balance, random) %>% 
   mutate(indstury = "Wind",
          priority = "Conflict risk")
 
@@ -60,12 +70,12 @@ all_wind<-rbind(pfin,penv,balance) %>%
 ```
 
 ```{r}
-ggplot(all_wind, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
+#ggplot(all_wind, aes(x = select, y = cumsum_perc, colour = scenario)) +
+#  geom_line() +
+#  theme_classic() + 
+#  labs(y = "Cumulative conflict risk",
+#       x = "No. cells",
+#       colour = "Scenario")
 ```
 
 # Aquaculture fish
@@ -94,7 +104,15 @@ af_balance<- aqua_fish %>%
          cumsum = cumsum(Financial_feasibility),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_aqua_sf<-rbind(af_pfin,af_penv,af_balance) %>% 
+af_random<-aqua_fish %>% 
+  mutate(select = sample(nrow(aqua_fish))) %>%
+    arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(Financial_feasibility),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+all_aqua_sf<-rbind(af_pfin,af_penv,af_balance, af_random) %>% 
   mutate(indstury = "Fish",
          priority = "Conflict risk")
 
@@ -102,12 +120,12 @@ all_aqua_sf<-rbind(af_pfin,af_penv,af_balance) %>%
 ```
 
 ```{r}
-ggplot(all_aqua_sf, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
+#ggplot(all_aqua_sf, aes(x = select, y = cumsum_perc, colour = scenario)) +
+#  geom_line() +
+#  theme_classic() + 
+#  labs(y = "Cumulative conflict risk",
+#       x = "No. cells",
+#       colour = "Scenario")
 ```
 
 # Aquaculture seaweed
@@ -136,7 +154,16 @@ as_balance<- aqua_sw %>%
          cumsum = cumsum(Financial_feasibility),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_aqua_sw<-rbind(as_pfin,as_penv,as_balance) %>% 
+as_random<-aqua_sw %>% 
+  mutate(select = sample(nrow(aqua_sw)))%>%
+    arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(Financial_feasibility),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+
+all_aqua_sw<-rbind(as_pfin,as_penv,as_balance, as_random) %>% 
   mutate(indstury = "Seaweed",
          priority = "Conflict risk")
 
@@ -144,12 +171,12 @@ all_aqua_sw<-rbind(as_pfin,as_penv,as_balance) %>%
 ```
 
 ```{r}
-ggplot(all_aqua_sw, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
+#ggplot(all_aqua_sw, aes(x = select, y = cumsum_perc, colour = scenario)) +
+#  geom_line() +
+ # theme_classic() + 
+ # labs(y = "Cumulative conflict risk",
+ #      x = "No. cells",
+ #      colour = "Scenario")
 ```
 
 ```{r}
@@ -193,21 +220,21 @@ balance_env<- wind %>%
          cumsum = cumsum(Wind_suitability),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_wind_env<-rbind(pfin_env,penv_env,balance_env) %>% 
+random_env<-wind %>% 
+  mutate(select = sample(nrow(wind))) %>%
+    arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(Wind_suitability),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+all_wind_env<-rbind(pfin_env,penv_env,balance_env, random_env) %>% 
   mutate(indstury = "Wind",
          priority = "Environmental suitability")
 
 #Wind_suitability * alpha + dat$Financial_feasibility * (1-alpha)
 ```
 
-```{r}
-ggplot(all_wind, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
-```
 
 # Aquaculture fish
 ```{r}
@@ -235,21 +262,22 @@ af_balance_env<- aqua_fish %>%
          cumsum = cumsum(AC_fish_suitability),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_aqua_sf_env<-rbind(af_pfin_env,af_penv_env,af_balance_env) %>% 
+
+af_random_env<-aqua_fish %>% 
+  mutate(select = sample(nrow(aqua_fish))) %>%
+    arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(AC_fish_suitability),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+all_aqua_sf_env<-rbind(af_pfin_env,af_penv_env,af_balance_env, af_random_env) %>% 
   mutate(indstury = "Fish",
          priority = "Environmental suitability")
 
 #Wind_suitability * alpha + dat$Financial_feasibility * (1-alpha)
 ```
 
-```{r}
-ggplot(all_aqua_sf, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
-```
 
 # Aquaculture seaweed
 ```{r}
@@ -277,21 +305,22 @@ as_balance_env<- aqua_sw %>%
          cumsum = cumsum(AC_sw_suitability),
          cumsum_perc = (cumsum/max(cumsum))*100)
 
-all_aqua_sw_env<-rbind(as_pfin_env,as_penv_env,as_balance_env) %>% 
+
+as_random_env<-aqua_sw %>% 
+  mutate(select = sample(nrow(aqua_sw))) %>%
+    arrange(select) %>% 
+  mutate(balance = NA, 
+         scenario = "Random",
+         cumsum = cumsum(AC_sw_suitability),
+         cumsum_perc = (cumsum/max(cumsum))*100)
+
+all_aqua_sw_env<-rbind(as_pfin_env,as_penv_env,as_balance_env, as_random_env) %>% 
   mutate(indstury = "Seaweed",
          priority = "Environmental suitability")
 
 #Wind_suitability * alpha + dat$Financial_feasibility * (1-alpha)
 ```
 
-```{r}
-ggplot(all_aqua_sw, aes(x = select, y = cumsum_perc, colour = scenario)) +
-  geom_line() +
-  theme_classic() + 
-  labs(y = "Cumulative conflict risk",
-       x = "No. cells",
-       colour = "Scenario")
-```
 
 ```{r}
 all_wind_env2<-all_wind_env%>%
@@ -307,17 +336,24 @@ all_env<-rbind(all_wind_env2, all_aqua_sf_env2, all_aqua_sw_env2)
 ```
 
 ```{r}
-all<-rbind(all_conflict, all_env)
+all<-rbind(all_conflict, all_env) %>%
+  mutate(indstury = factor(indstury, levels = c("Wind", "Fish", "Seaweed")),
+         scenario = factor(scenario, levels = c("Conflict risk", "Environmental suitability", "Balanced", "Random")))
 ```
 
 ```{r}
-ggplot(all, aes(x = select, y = cumsum_perc, colour = scenario)) +
+ggplot(all, aes(x = select/1000, y = cumsum_perc, colour = scenario)) +
   geom_line() +
   theme_bw() + 
-  labs(y = "Cumulative",
-       x = "No. cells",
+  labs(y = "Cumulative (%)",
+       x = "No. cells (thousands)",
        colour = "Scenario") +
-  facet_grid(priority ~indstury, scales = "free_x")
+  facet_grid(priority ~indstury, scales = "free_x") +
+  theme(legend.position = "bottom")
 ```
 
+
+```{r}
+ggsave(here("figures/Cumulative_risk_suitability_plot.png"), width = 6, height = 5)
+```
 
