@@ -29,7 +29,7 @@ aqua_sw<-read.csv(here("AC_sw_FinRisk_df.csv")) %>%
 # Wind
 ```{r}
 pfin<-wind %>%
-  arrange(desc(Financial_feasibility)) %>% 
+  arrange(Financial_feasibility) %>% 
   mutate(select = 1:nrow(wind),
          scenario = "Conflict risk",
          balance = NA,
@@ -45,7 +45,7 @@ penv<-wind %>%
          cumsum_perc = (cumsum/max(cumsum))*100) 
 
 balance<- wind %>%
-  mutate(balance = Financial_feasibility*0.5 + Wind_suitability*0.5) %>% 
+  mutate(balance = ((1-Financial_feasibility)*0.5) + Wind_suitability*0.5) %>% 
   arrange(desc(balance)) %>% 
   mutate(select = 1:nrow(wind),
          scenario = "Balanced",
@@ -70,18 +70,18 @@ all_wind<-rbind(pfin,penv,balance, random) %>%
 ```
 
 ```{r}
-#ggplot(all_wind, aes(x = select, y = cumsum_perc, colour = scenario)) +
-#  geom_line() +
-#  theme_classic() + 
-#  labs(y = "Cumulative conflict risk",
-#       x = "No. cells",
-#       colour = "Scenario")
+ggplot(all_wind, aes(x = select, y = cumsum_perc, colour = scenario)) +
+  geom_line() +
+  theme_classic() + 
+  labs(y = "Cumulative conflict risk",
+       x = "No. cells",
+       colour = "Scenario")
 ```
 
 # Aquaculture fish
 ```{r}
 af_pfin<-aqua_fish %>%
-  arrange(desc(Financial_feasibility)) %>% 
+  arrange(Financial_feasibility) %>% 
   mutate(select = 1:nrow(aqua_fish),
          scenario = "Conflict risk",
          balance = NA,
@@ -97,7 +97,7 @@ af_penv<-aqua_fish %>%
          cumsum_perc = (cumsum/max(cumsum))*100) 
 
 af_balance<- aqua_fish %>%
-  mutate(balance = Financial_feasibility*0.5 + AC_fish_suitability*0.5) %>% 
+  mutate(balance = ((1-Financial_feasibility)*0.5) + AC_fish_suitability*0.5) %>% 
   arrange(desc(balance)) %>% 
   mutate(select = 1:nrow(aqua_fish),
          scenario = "Balanced",
@@ -131,7 +131,7 @@ all_aqua_sf<-rbind(af_pfin,af_penv,af_balance, af_random) %>%
 # Aquaculture seaweed
 ```{r}
 as_pfin<-aqua_sw %>%
-  arrange(desc(Financial_feasibility)) %>% 
+  arrange(Financial_feasibility) %>% 
   mutate(select = 1:nrow(aqua_sw),
          scenario = "Conflict risk",
          balance = NA,
@@ -147,7 +147,7 @@ as_penv<-aqua_sw %>%
          cumsum_perc = (cumsum/max(cumsum))*100) 
 
 as_balance<- aqua_sw %>%
-  mutate(balance = Financial_feasibility*0.5 + AC_sw_suitability*0.5) %>% 
+  mutate(balance = ((1-Financial_feasibility)*0.5) + AC_sw_suitability*0.5) %>% 
   arrange(desc(balance)) %>% 
   mutate(select = 1:nrow(aqua_sw),
          scenario = "Balanced",
@@ -349,11 +349,210 @@ ggplot(all, aes(x = select/1000, y = cumsum_perc, colour = scenario)) +
        x = "No. cells (thousands)",
        colour = "Scenario") +
   facet_grid(priority ~indstury, scales = "free_x") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  geom_vline(data = subset(all, indstury == "Wind"), aes(xintercept = 6),linetype = "dotted")
 ```
 
 
 ```{r}
 ggsave(here("figures/Cumulative_risk_suitability_plot.png"), width = 6, height = 5)
 ```
+
+
+# Results
+
+How many cells it takes to reach 20% cumulative conflict risk
+
+```{r}
+all_wind<-rbind(pfin,penv,balance, random) %>% 
+  mutate(indstury = "Wind",
+         priority = "Conflict risk")
+
+pfin20<-pfin %>%
+  filter(cumsum_perc<=20)
+
+
+penv20<-penv%>%
+  filter(cumsum_perc<=20)
+
+pbalance20<-balance%>%
+  filter(cumsum_perc<=20)
+
+prandom20<-random%>%
+  filter(cumsum_perc<=20)
+
+nrow(pfin20)
+nrow(penv20)
+nrow(pbalance20)
+nrow(prandom20)
+
+(nrow(pfin20)-nrow(penv20))/((nrow(pfin20)+nrow(penv20))/2)*100
+```
+```{r}
+all_aqua_sf_env<-rbind(af_pfin_env,af_penv_env,af_balance_env, af_random_env) %>% 
+  mutate(indstury = "Fish",
+         priority = "Environmental suitability")
+
+af_pfin20<-af_pfin %>%
+  filter(cumsum_perc<=20)
+
+
+af_penv20<-af_penv%>%
+  filter(cumsum_perc<=20)
+
+af_pbalance20<-af_balance%>%
+  filter(cumsum_perc<=20)
+
+af_prandom20<-af_random%>%
+  filter(cumsum_perc<=20)
+
+nrow(af_pfin20)
+nrow(af_penv20)
+nrow(af_pbalance20)
+nrow(af_prandom20)
+
+(nrow(af_pfin20)-nrow(af_penv20))/((nrow(af_pfin20)+nrow(af_penv20))/2)*100
+
+```
+
+```{r}
+
+as_pfin20<-as_pfin %>%
+  filter(cumsum_perc<=20)
+
+
+as_penv20<-as_penv%>%
+  filter(cumsum_perc<=20)
+
+as_pbalance20<-as_balance%>%
+  filter(cumsum_perc<=20)
+
+as_prandom20<-as_random%>%
+  filter(cumsum_perc<=20)
+
+nrow(as_pfin20)
+nrow(as_penv20)
+nrow(as_pbalance20)
+nrow(as_prandom20)
+
+(nrow(as_pfin20)-nrow(as_penv20))/((nrow(as_pfin20)+nrow(as_penv20))/2)*100
+
+```
+Difference between scenarios at 6000 cells
+
+```{r}
+pfin6000<-pfin %>%
+  filter(select<=6000)
+
+
+penv6000<-penv%>%
+  filter(select<=6000)
+
+pbalance6000<-balance%>%
+  filter(select<=6000)
+
+prandom6000<-random%>%
+  filter(select<=6000)
+
+max(pfin6000$cumsum_perc)
+max(penv6000$cumsum_perc)
+max(pbalance6000$cumsum_perc)
+max(prandom6000$cumsum_perc)
+
+```
+```{r}
+pfin6000_env<-pfin_env %>%
+  filter(select<=6000)
+
+
+penv6000_env<-penv_env%>%
+  filter(select<=6000)
+
+pbalance6000_env<-balance_env%>%
+  filter(select<=6000)
+
+prandom6000_env<-random_env%>%
+  filter(select<=6000)
+
+max(pfin6000_env$cumsum_perc)
+max(penv6000_env$cumsum_perc)
+max(pbalance6000_env$cumsum_perc)
+max(prandom6000_env$cumsum_perc)
+
+```
+
+How many cells it takes to reach 80% environmental suitability
+
+```{r}
+
+pfin20_env<-pfin_env %>%
+  filter(cumsum_perc<=80)
+
+
+penv20_env<-penv_env%>%
+  filter(cumsum_perc<=80)
+
+pbalance20_env<-balance_env%>%
+  filter(cumsum_perc<=80)
+
+prandom20_env<-random_env%>%
+  filter(cumsum_perc<=80)
+
+nrow(pfin20_env)
+nrow(penv20_env)
+nrow(pbalance20_env)
+nrow(prandom20_env)
+
+(nrow(penv20_env)-nrow(pfin20_env))/((nrow(pfin20_env)+nrow(penv20_env))/2)*100
+```
+```{r}
+
+af_pfin20_env<-af_pfin_env %>%
+  filter(cumsum_perc<=80)
+
+
+af_penv20_env<-af_penv_env%>%
+  filter(cumsum_perc<=80)
+
+af_pbalance20_env<-af_balance_env%>%
+  filter(cumsum_perc<=80)
+
+af_prandom20_env<-af_random_env%>%
+  filter(cumsum_perc<=80)
+
+nrow(af_pfin20_env)
+nrow(af_penv20_env)
+nrow(af_pbalance20_env)
+nrow(af_prandom20_env)
+
+(nrow(af_penv20_env)-nrow(af_pfin20_env))/((nrow(af_pfin20_env)+nrow(af_penv20_env))/2)*100
+
+```
+
+```{r}
+
+as_pfin20_env<-as_pfin_env %>%
+  filter(cumsum_perc<=80)
+
+
+as_penv20_env<-as_penv_env%>%
+  filter(cumsum_perc<=80)
+
+as_pbalance20_env<-as_balance_env%>%
+  filter(cumsum_perc<=80)
+
+as_prandom20_env<-as_random_env%>%
+  filter(cumsum_perc<=80)
+
+nrow(as_pfin20_env)
+nrow(as_penv20_env)
+nrow(as_pbalance20_env)
+nrow(as_prandom20_env)
+
+(nrow(as_penv20_env)-nrow(as_pfin20_env))/((nrow(as_pfin20_env)+nrow(as_penv20_env))/2)*100
+
+```
+
+
+
 

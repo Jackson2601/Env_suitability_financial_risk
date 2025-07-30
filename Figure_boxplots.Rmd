@@ -1,0 +1,188 @@
+---
+title: "Untitled"
+author: "Caitie"
+date: "2025-07-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(terra)
+library(tmap)
+library(raster)
+library(biscale)
+library(cowplot)
+library(stars)
+library(patchwork)
+
+prj <- 'EPSG:28355'
+```
+
+```{r}
+wind_balanced<-rast(here("wind_balanced_full.tif"))
+fish_balanced<-rast(here("AC_fish_balanced_full.tif"))
+sw_balanced<-rast(here("AC_sw_balanced_full.tif"))
+```
+
+```{r}
+wind_df<-as.data.frame(wind_balanced) %>% 
+  mutate(industry = "Wind")
+fish_df<-as.data.frame(fish_balanced)%>% 
+  mutate(industry = "Fish")
+sw_df<-as.data.frame(sw_balanced)%>% 
+  mutate(industry = "Seaweed")
+
+all<-rbind(wind_df, fish_df, sw_df)
+```
+
+```{r}
+ ggplot(data = all, aes(x = factor(industry, levels = c("Wind", "Fish", "Seaweed")), y = last)) +
+      geom_boxplot() +
+  theme_bw() +
+  labs(x = "Industry",
+       y = "Economic viability")
+```
+
+```{r}
+ggsave(here("figures/Balanced_boxplot.png"))
+```
+
+```{r}
+wind_env<-rast(here("rasters/wind_BS_01.tif"))
+fish_env<-rast(here("rasters/AC_fish_BS_01.tif"))
+sw_env<-rast(here("rasters/AC_sw_BS_01.tif"))
+fin_risk<-rast(here("rasters/FinRisk_BS_01.tif"))
+
+```
+
+```{r}
+wind_env_df<-as.data.frame(wind_env) %>% 
+  mutate(industry = "Wind") %>% 
+  rename(Suitability = Wind_suitability)
+fish_env_df<-as.data.frame(fish_env)%>% 
+  mutate(industry = "Fish") %>% 
+  rename(Suitability = fish_phi_all_constraints)
+sw_env_df<-as.data.frame(sw_env)%>% 
+  mutate(industry = "Seaweed") %>% 
+  rename(Suitability = sum)
+fin_risk_df<-as.data.frame(fin_risk) %>% 
+  mutate(industry = "Conflict Risk") %>% 
+  rename(Suitability = Aquaculture_ras)
+
+all2<-rbind(wind_env_df, fish_env_df, sw_env_df, fin_risk_df)
+```
+
+```{r}
+ ggplot(data = all2, aes(x = factor(industry, levels = c("Wind", "Fish", "Seaweed", "Conflict Risk")), y = Suitability)) +
+      geom_boxplot() +
+  theme_bw() +
+  labs(x = "Industry",
+       y = "Suitability")
+```
+```{r}
+ggsave(here("figures/Suitability_risk_boxplot.png"))
+```
+
+# Env suitability/conflict risk results
+
+```{r}
+mean(wind_env_df$Suitability, na.rm = T)
+mean(fish_env_df$Suitability, na.rm = T)
+mean(sw_env_df$Suitability, na.rm = T)
+mean(fin_risk_df$Suitability, na.rm = T)
+
+sd(wind_env_df$Suitability, na.rm = T)
+sd(fish_env_df$Suitability, na.rm = T)
+sd(sw_env_df$Suitability, na.rm = T)
+sd(fin_risk_df$Suitability, na.rm = T)
+```
+```{r}
+length(which(wind_env_df$Suitability>=0.8))
+length(which(wind_env_df$Suitability>=0.8))/nrow(wind_env_df)
+length(which(fish_env_df$Suitability>=0.8))
+length(which(fish_env_df$Suitability>=0.8))/nrow(fish_env_df)
+length(which(sw_env_df$Suitability>=0.8))
+length(which(sw_env_df$Suitability>=0.8))/nrow(sw_env_df)
+```
+
+# Balanced results
+
+```{r}
+mean(wind_df$last, na.rm = T)
+mean(fish_df$last, na.rm = T)
+mean(sw_df$last, na.rm = T)
+
+sd(wind_df$last, na.rm = T)
+sd(fish_df$last, na.rm = T)
+sd(sw_df$last, na.rm = T)
+
+min(wind_df$last, na.rm = T)
+min(fish_df$last, na.rm = T)
+min(sw_df$last, na.rm = T)
+
+max(wind_df$last, na.rm = T)
+max(fish_df$last, na.rm = T)
+max(sw_df$last, na.rm = T)
+
+```
+
+```{r}
+length(which(wind_df$last>=0.5))
+length(which(wind_df$last>=0.5))/nrow(wind_df)
+length(which(fish_df$last>=0.5))
+length(which(fish_df$last>=0.5))/nrow(fish_df)
+length(which(sw_df$last>=0.5))
+length(which(sw_df$last>=0.5))/nrow(sw_df)
+```
+
+```{r}
+length(which(wind_df$last<0.5))
+length(which(wind_df$last<0.5))/nrow(wind_df)
+length(which(fish_df$last<0.5))
+length(which(fish_df$last<0.5))/nrow(fish_df)
+length(which(sw_df$last<0.5))
+length(which(sw_df$last<0.5))/nrow(sw_df)
+```
+# High viability
+
+```{r}
+wind_high<-wind_balanced
+wind_high[wind_high>=0.5]<-1
+wind_high[wind_high<0.5]<-NA
+
+fish_high<-fish_balanced
+fish_high[fish_high>=0.5]<-1
+fish_high[fish_high<0.5]<-NA
+
+sw_high<-sw_balanced
+sw_high[sw_high>=0.5]<-1
+sw_high[sw_high<0.5]<-NA
+
+wind_fish_overlap<-wind_high+fish_high
+
+wind_fish_overlap_df<-as.data.frame(wind_fish_overlap)
+length(which(wind_fish_overlap_df == 2))
+
+```
+
+```{r}
+wind_sw_overlap<-wind_high+sw_high
+wind_sw_overlap_df<-as.data.frame(wind_sw_overlap)
+length(which(wind_sw_overlap_df == 2))
+
+
+```
+
+```{r}
+fish_sw_overlap<-fish_high+sw_high
+fish_sw_overlap_df<-as.data.frame(fish_sw_overlap)
+length(which(fish_sw_overlap_df == 2))
+```
+
+

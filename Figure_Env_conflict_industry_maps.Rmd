@@ -18,15 +18,310 @@ library(tmap)
 library(raster)
 library(biscale)
 library(cowplot)
+library(stars)
+library(patchwork)
+
+prj <- 'EPSG:28355'
 ```
 
 ```{r}
+bs_r<-read_stars(here("Bass_Strait.tif"))
 bs_r<-rast(here("Bass_Strait.tif"))
 ```
 
+```{r}
+wind_areas<-st_read(here("wind_farms/Offshore_Renewable_Energy_Infrastructure_Regions.shp")) 
+
+wind_areas2<-wind_areas%>% 
+  mutate(diss = 1) %>% 
+  group_by(diss) %>%
+  summarise(diss2 = sum(diss,na.rm = T))
+```
+
+# Read in rasters
 
 ```{r}
-wind<-vect(here("wind_FinFeas_sf.gpkg"))
-wind_fin_r<-rasterize(wind, bs_r, field = "Financial_feasibility")
+wind_env<-rast(here("rasters/wind_BS_01.tif"))
+```
+
+```{r}
+wind_suitable_quant <- global(wind_env, quantile, na.rm=TRUE)
+wind_suitable_quant
+
+wind_class<-wind_env
+wind_class[wind_class>=wind_suitable_quant[[4]]]<-4
+wind_class[wind_class>=wind_suitable_quant[[1]] & wind_class <wind_suitable_quant[[2]]]<-1
+wind_class[wind_class>=wind_suitable_quant[[2]] & wind_class <wind_suitable_quant[[3]]]<-2
+wind_class[wind_class>=wind_suitable_quant[[3]] & wind_class <wind_suitable_quant[[4]]]<-3
+
+```
+
+
+```{r}
+my_colors <- c("darkred", "darkorange", "gold2", "darkolivegreen4")
+```
+
+```{r}
+wind_env_map<-tm_shape(wind_class) +
+  tm_raster("Wind_suitability",
+            palette = my_colors,
+            style = "cat",
+            title = "Category") +
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE)  + 
+  tm_layout(frame = FALSE,
+            legend.show = FALSE)
+
+wind_env_map
+```
+```{r}
+tmap_save(wind_env_map, here("figures/Wind_env_suitability.png"))
+```
+```{r}
+wind_class<-wind_env
+wind_class[wind_class>0.5]<-NA
+wind_class[wind_class<0.5]<-0
+wind_suitable<-wind_env
+wind_suitable[wind_suitable<0.5]<-NA
+```
+
+```{r}
+wind_env_map2<-tm_shape(wind_suitable) +
+  tm_raster("Wind_suitability",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Env. suitability") +
+  tm_shape(wind_class) +
+  tm_raster("Wind_suitability",
+            palette = "darkslategrey",
+            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +  
+  tm_shape(wind_areas2) +
+  tm_borders("black") +
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+wind_env_map2
+```
+```{r}
+tmap_save(wind_env_map2, here("figures/Wind_env_suitability_continuous.png"))
+```
+
+```{r}
+fish_env<-rast(here("rasters/AC_fish_BS_01.tif"))
+```
+
+```{r}
+fish_suitable_quant <- global(fish_env, quantile, na.rm=TRUE)
+fish_suitable_quant
+
+fish_class<-fish_env
+fish_class[fish_class>=fish_suitable_quant[[4]]]<-4
+fish_class[fish_class>=fish_suitable_quant[[1]] & fish_class <fish_suitable_quant[[2]]]<-1
+fish_class[fish_class>=fish_suitable_quant[[2]] & fish_class <fish_suitable_quant[[3]]]<-2
+fish_class[fish_class>=fish_suitable_quant[[3]] & fish_class <fish_suitable_quant[[4]]]<-3
+```
+
+
+```{r}
+fish_env_map<-tm_shape(fish_class) +
+  tm_raster("fish_phi_all_constraints",
+            palette = my_colors,
+            style = "cat",
+            title = "Category") +
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +
+  tm_layout(frame = FALSE,
+            legend.show = FALSE)
+
+fish_env_map
+```
+```{r}
+tmap_save(fish_env_map, here("figures/Fish_env_suitability.png"))
+```
+
+```{r}
+fish_class<-fish_env
+fish_class[fish_class>0.5]<-NA
+fish_class[fish_class<0.5]<-0
+fish_suitable<-fish_env
+fish_suitable[fish_suitable<0.5]<-NA
+```
+
+```{r}
+fish_env_map2<-tm_shape(fish_suitable) +
+  tm_raster("fish_phi_all_constraints",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Env. suitability") +
+  tm_shape(fish_class) +
+  tm_raster("fish_phi_all_constraints",
+            palette = "darkslategrey",
+            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +  
+ # tm_shape(wind_areas2) +
+ # tm_borders("black") +
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+fish_env_map2
+```
+```{r}
+tmap_save(fish_env_map2, here("figures/Fish_env_suitability_continuous.png"))
+```
+
+
+```{r}
+sw_env<-rast(here("rasters/AC_sw_BS_01.tif"))
+
+```
+
+```{r}
+sw_suitable_quant <- global(sw_env, quantile, na.rm=TRUE)
+sw_suitable_quant
+
+sw_class<-sw_env
+sw_class[sw_class>=sw_suitable_quant[[4]]	]<-4
+sw_class[sw_class>=sw_suitable_quant[[1]] & sw_class <sw_suitable_quant[[2]]]<-1
+sw_class[sw_class>=sw_suitable_quant[[2]] & sw_class <sw_suitable_quant[[3]]]<-2
+sw_class[sw_class>=sw_suitable_quant[[3]] & sw_class <sw_suitable_quant[[4]]]<-3
+```
+
+
+```{r}
+sw_env_map<-tm_shape(sw_class) +
+  tm_raster("sum",
+            palette = my_colors,
+            style = "cat",
+            title = "Category") +
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE)  + 
+  tm_layout(frame = FALSE,
+            legend.show = FALSE)
+
+sw_env_map
+```
+
+```{r}
+tmap_save(sw_env_map, here("figures/Sewaweed_env_suitability.png"))
+```
+
+```{r}
+sw_class<-sw_env
+sw_class[sw_class>0.5]<-NA
+sw_class[sw_class<0.5]<-0
+sw_suitable<-sw_env
+sw_suitable[sw_suitable<0.5]<-NA
+```
+
+```{r}
+sw_env_map2<-tm_shape(sw_suitable) +
+  tm_raster("sum",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Env. suitability") +
+  tm_shape(sw_class) +
+  tm_raster("sum",
+            palette = "darkslategrey",
+            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +  
+ # tm_shape(wind_areas2) +
+ # tm_borders("black") +
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+sw_env_map2
+```
+```{r}
+tmap_save(sw_env_map2, here("figures/Seaweed_env_suitability_continuous.png"))
+```
+
+# Conflict risk
+
+```{r}
+fin_risk<-rast(here("rasters/FinRisk_BS_01.tif"))
+
+```
+
+```{r}
+fin_suitable_quant <- global(fin_risk, quantile, na.rm=TRUE)
+fin_suitable_quant
+
+fin_class<-fin_risk
+fin_class[fin_class>=fin_suitable_quant[[4]]]<-4
+fin_class[fin_class>=fin_suitable_quant[[1]] & fin_class <fin_suitable_quant[[2]]]<-1
+fin_class[fin_class>=fin_suitable_quant[[2]] & fin_class <fin_suitable_quant[[3]]]<-2
+fin_class[fin_class>=fin_suitable_quant[[3]] & fin_class <fin_suitable_quant[[4]]]<-3
+```
+```{r}
+my_colors <- c("darkolivegreen4",  "gold2","darkorange", "darkred")
+```
+
+```{r}
+fin_risk_map<-tm_shape(fin_class) +
+  tm_raster("Aquaculture_ras",
+            palette = my_colors,
+            style = "cat",
+            title = "Category") +
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE)  + 
+  tm_layout(frame = FALSE,
+            legend.show = FALSE)
+
+fin_risk_map
+```
+```{r}
+tmap_save(fin_risk_map, here("figures/Conflict_risk_map.png"))
+```
+
+```{r}
+fin_class<-fin_risk
+fin_class[fin_class>0.5]<-NA
+fin_class[fin_class<0.5]<-0
+fin_suitable<-fin_risk
+fin_suitable[fin_suitable<0.5]<-NA
+```
+
+```{r}
+fin_map2<-tm_shape(fin_risk) +
+  tm_raster("FinRisk_BS_01.tif",
+            style = "cont",
+            palette = "-RdYlGn",
+            title = "Conflict risk") +
+ # tm_shape(fin_class) +
+#  tm_raster("Aquaculture_ras",
+#            palette = "darkslategrey",
+#            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +  
+ # tm_shape(wind_areas2) +
+ # tm_borders("black") +
+  #tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+fin_map2
+```
+```{r}
+tmap_save(fin_map2, here("figures/Financial_risk_continuous.png"))
+```
+
+# Results
+
+```{r}
+freq(wind_class)
+freq(fish_class)
+freq(sw_class)
+freq(fin_class)
 ```
 

@@ -1,0 +1,223 @@
+---
+title: "Untitled"
+author: "Caitie"
+date: "2025-07-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(terra)
+library(tmap)
+library(raster)
+library(biscale)
+library(cowplot)
+library(stars)
+library(patchwork)
+
+prj <- 'EPSG:28355'
+```
+
+```{r}
+bs_r<-read_stars(here("Bass_Strait.tif"))
+bs_r<-rast(here("Bass_Strait.tif"))
+```
+
+
+
+
+```{r}
+wind_balanced<-rast(here("wind_balanced_full.tif"))
+fish_balanced<-rast(here("AC_fish_balanced_full.tif"))
+sw_balanced<-rast(here("AC_sw_balanced_full.tif"))
+```
+
+```{r}
+#my_colors <- c("black", "darkred", "darkorange", "gold2", "darkolivegreen4", "purple")
+```
+
+```{r}
+wind_areas<-st_read(here("wind_farms/Offshore_Renewable_Energy_Infrastructure_Regions.shp")) 
+
+wind_areas2<-wind_areas%>% 
+  mutate(diss = 1) %>% 
+  group_by(diss) %>%
+  summarise(diss2 = sum(diss,na.rm = T))
+```
+
+
+```{r}
+wind_balanced_quant <- global(wind_balanced, quantile, na.rm=TRUE)
+wind_balanced_quant
+
+#wind_class<-wind_balanced
+#wind_class[wind_class>=wind_balanced_quant[[4]]]<-4
+#wind_class[wind_class>=wind_balanced_quant[[1]] & wind_class <wind_balanced_quant[[2]]]<-1
+#wind_class[wind_class>=wind_balanced_quant[[2]] & wind_class <wind_balanced_quant[[3]]]<-2
+#wind_class[wind_class>=wind_balanced_quant[[3]] & wind_class <wind_balanced_quant[[4]]]<-3
+
+#wind_class<-wind_balanced
+#wind_class[wind_class<0.5]<-0
+#wind_class[wind_class>=0.9]<-5
+#wind_class[wind_class>=0.5 & wind_class <0.6]<-1
+#wind_class[wind_class>=0.6 & wind_class <0.7]<-2
+#wind_class[wind_class>=0.7 & wind_class <0.8]<-3
+#wind_class[wind_class>=0.8 & wind_class <0.9]<-4
+
+wind_class<-wind_balanced
+wind_class[wind_class>0.5]<-NA
+wind_class[wind_class<0.5]<-0
+wind_suitable<-wind_balanced
+wind_suitable[wind_suitable<0.5]<-NA
+```
+```{r}
+wind_balance_map<-tm_shape(wind_balanced) +
+  tm_raster("wind_balanced_full.tif",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Economic viability",
+            breaks = c(0,0.2,0.4,0.6,0.8, 1)) +
+ # tm_shape(wind_class) +
+#  tm_raster("last",
+#            palette = "darkslategrey",
+#            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +  
+  tm_shape(wind_areas2) +
+  tm_borders("black") +
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+wind_balance_map
+```
+```{r}
+tmap_save(wind_balance_map, here("figures/Wind_win_win_map.png"))
+```
+
+```{r}
+fish_balanced_quant <- global(fish_balanced, quantile, na.rm=TRUE)
+fish_balanced_quant
+
+#fish_class<-fish_balanced
+#fish_class[fish_class>=fish_balanced_quant[[4]]]<-4
+#fish_class[fish_class>=fish_balanced_quant[[1]] & fish_class <fish_balanced_quant[[2]]]<-1
+#fish_class[fish_class>=fish_balanced_quant[[2]] & fish_class <fish_balanced_quant[[3]]]<-2
+#fish_class[fish_class>=fish_balanced_quant[[3]] & fish_class <fish_balanced_quant[[4]]]<-3
+
+#fish_class<-fish_balanced
+#fish_class[fish_class>=0.9]<-5
+#fish_class[fish_class<0.5]<-0
+#fish_class[fish_class>= 0.5& fish_class <0.6]<-1
+#fish_class[fish_class>=0.6& fish_class <0.7]<-2
+#fish_class[fish_class>= 0.7& fish_class <0.8]<-3
+#fish_class[fish_class>= 0.8& fish_class <0.9]<-4
+
+fish_class<-fish_balanced
+fish_class[fish_class>0.5]<-NA
+fish_class[fish_class<0.5]<-0
+fish_suitable<-fish_balanced
+fish_suitable[fish_suitable<0.5]<-NA
+```
+```{r}
+fish_balance_map<-tm_shape(fish_balanced) +
+  tm_raster("AC_fish_balanced_full.tif",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Economic viability",
+            breaks = c(0,0.2,0.4,0.6,0.8,1)) +
+  #tm_shape(fish_class) +
+ # tm_raster("last",
+#            palette = "darkslategrey",
+#            title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +   
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+fish_balance_map
+```
+```{r}
+tmap_save(fish_balance_map, here("figures/Fish_win_win_map.png"))
+```
+
+```{r}
+sw_balanced_quant <- global(sw_balanced, quantile, na.rm=TRUE)
+sw_balanced_quant
+
+#sw_class<-sw_balanced
+#sw_class[sw_class>=sw_balanced_quant[[4]]]<-4
+#sw_class[sw_class>=sw_balanced_quant[[1]] & sw_class <sw_balanced_quant[[2]]]<-1
+#sw_class[sw_class>=sw_balanced_quant[[2]] & sw_class <sw_balanced_quant[[3]]]<-2
+#sw_class[sw_class>=sw_balanced_quant[[3]] & sw_class <sw_balanced_quant[[4]]]<-3
+
+sw_class<-sw_balanced
+sw_class[sw_class>=0.9]<-5
+sw_class[sw_class<0.5]<-0
+sw_class[sw_class>= 0.5& sw_class <0.6]<-1
+sw_class[sw_class>=0.6& sw_class <0.7]<-2
+sw_class[sw_class>= 0.7& sw_class <0.8]<-3
+sw_class[sw_class>= 0.8& sw_class <0.9]<-4
+
+sw_class<-sw_balanced
+sw_class[sw_class>0.5]<-NA
+sw_class[sw_class<0.5]<-0
+sw_suitable<-sw_balanced
+sw_suitable[sw_suitable<0.5]<-NA
+```
+```{r}
+sw_balance_map<-tm_shape(sw_balanced) +
+  tm_raster("AC_sw_balanced_full.tif",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Economic viability",
+            breaks = c(0,0.2,0.4,0.6,0.8,1)) +
+ # tm_shape(sw_class) +
+ # tm_raster("last",
+ #           palette = "darkslategrey",
+  #          title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +   
+  tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+sw_balance_map
+```
+
+```{r}
+tmap_save(sw_balance_map, here("figures/Seaweed_win_win_map.png"))
+```
+
+```{r}
+sw_balance_map<-tm_shape(sw_balanced) +
+  tm_raster("AC_sw_balanced_full.tif",
+            style = "cont",
+            palette = "RdYlGn",
+            title = "Economic viability",
+            breaks = c(0,0.2,0.4,0.6,0.8,1)) +
+ # tm_shape(sw_class) +
+ # tm_raster("last",
+ #           palette = "darkslategrey",
+  #          title = "Unsuitable")+
+  tm_shape(bs_r) +
+  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+            legend.show = FALSE) +   
+ # tm_legend(show=FALSE) + 
+  tm_layout(frame = FALSE)
+
+sw_balance_map
+```
+
+```{r}
+tmap_save(sw_balance_map, here("figures/Win_win_legend.png"))
+
+```
+
