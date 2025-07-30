@@ -35,7 +35,7 @@ nalphvals <- length(alphvals)
 #----WIND FARMING----#
 
 # Import environmental suitability and feasibility dataframes
-wind_FinFeas_df <- read_csv(here('output/dataframes/wind_FinFeas_df.csv'))
+wind_FinFeas_df <- read_csv(here('wind_FinFeas_df.csv'))
 # wind_risk_df <- read_csv(here('output/dataframes/wind_risk_df.csv'))
 
 # Remove NAs
@@ -135,10 +135,10 @@ dat_opt$finances_outcome_perc <- (dat_opt$finances_outcome/max(dat_opt$finances_
 # wind_decl_FinFeas <- sum(wind_decl_pts$Financial_feasibility)
 
 # Import wind farm symbol
-wind_img <- readPNG(here('data/wind-power.png'))
-wind_grob <- rasterGrob(wind_img, interpolate = TRUE)
-wind_bud_img <- readPNG(here('data/dollar.png'))
-wind_bud_grob <- rasterGrob(wind_bud_img, interpolate = TRUE)
+#wind_img <- readPNG(here('data/wind-power.png'))
+#wind_grob <- rasterGrob(wind_img, interpolate = TRUE)
+#wind_bud_img <- readPNG(here('data/dollar.png'))
+#wind_bud_grob <- rasterGrob(wind_bud_img, interpolate = TRUE)
 
 # Plot
 pareto_wind <- 
@@ -156,13 +156,17 @@ pareto_wind <-
   theme_classic() +
   theme(axis.title = element_blank(),
         axis.text = element_text(size = 15)) +
-  theme(legend.position = 'none') +
-  annotation_custom(wind_grob, xmin = 60, xmax = 65, ymin = 92, ymax = 94) +
-  annotation_custom(wind_bud_grob, xmin = 60, xmax = 61.5, ymin = 88, ymax = 100)
+  theme(legend.position = 'none') #+
+ # annotation_custom(wind_grob, xmin = 60, xmax = 65, ymin = 92, ymax = 94) +
+ # annotation_custom(wind_bud_grob, xmin = 60, xmax = 61.5, ymin = 88, ymax = 100)
 pareto_wind
 
 # Save
-ggsave(here('output/figures/pareto_wind_plot.png'), pareto_wind)
+ggsave(here('figures/pareto_wind_plot.png'), pareto_wind)
+
+# Results
+
+View(dat_opt)
 
 
 #----AQUACULTURE----#
@@ -170,7 +174,7 @@ ggsave(here('output/figures/pareto_wind_plot.png'), pareto_wind)
 #---Finfish---#
 
 # Import environmental suitability and feasibility dataframes
-AC_fish_FinFeas_df <- read_csv(here('output/dataframes/AC_fish_FinFeas_df.csv'))
+AC_fish_FinFeas_df <- read_csv(here('AC_fish_FinFeas_df.csv'))
 # AC_fish_risk_df <- read_csv(here('output/dataframes/AC_fish_risk_df.csv'))
 
 # # Invert risk values to represent feasibility
@@ -227,8 +231,8 @@ dat_opt_AC_fish$finances_outcome_perc <- (dat_opt_AC_fish$finances_outcome/max(d
 # write_csv(dat_temp_AC_fish, here('output/dataframes/AC_fish_obj_df.csv'))
 
 # Import fish symbol
-fish_img <- readPNG(here('data/fish.png'))
-fish_grob <- rasterGrob(fish_img, interpolate = TRUE)
+#fish_img <- readPNG(here('data/fish.png'))
+#fish_grob <- rasterGrob(fish_img, interpolate = TRUE)
 
 # Plot
 pareto_AC_fish <- 
@@ -236,25 +240,21 @@ pareto_AC_fish <-
   aes(x = AC_fish_outcome_perc, y = finances_outcome_perc, color = alpha) +
   geom_point(size = 4) +
   geom_line(col = 'black') +
-  # annotate(geom = 'text', x = 800, y = 925,
-  #          label = 'b', size = 8) +
-  labs(x = '\nEnvironmental suitability') +
   theme_classic() +
-  theme(axis.title.x = element_text(size = 20),
-        axis.title.y = element_blank(),
+  theme(axis.title = element_blank(),
         axis.text = element_text(size = 15)) +
-  theme(legend.position = 'none') +
-  annotation_custom(fish_grob, xmin = 85, xmax = 90, ymin = 90, ymax = 93)
+  theme(legend.position = 'none') #+
 pareto_AC_fish
 
 # Save
-ggsave(here('output/figures/pareto_AC_fish_plot.png'), pareto_AC_fish)
+ggsave(here('figures/pareto_AC_fish_plot.png'), pareto_AC_fish)
 
-
+# Results
+View(dat_opt_AC_fish)
 #---Seaweed---#
 
 # Import environmental suitability and feasibility dataframes
-AC_sw_FinFeas_df <- read_csv(here('output/dataframes/AC_sw_FinFeas_df.csv'))
+AC_sw_FinFeas_df <- read_csv(here('AC_sw_FinFeas_df.csv'))
 # AC_sw_risk_df <- read_csv(here('output/dataframes/AC_sw_risk_df.csv'))
 
 # # Invert risk values to represent feasibility
@@ -311,8 +311,8 @@ dat_opt_AC_sw$finances_outcome_perc <- (dat_opt_AC_sw$finances_outcome/max(dat_o
 # write_csv(dat_temp_AC_sw, here('output/dataframes/AC_sw_obj_df.csv'))
 
 # Import seaweed symbol
-sw_img <- readPNG(here('data/seaweed.png'))
-sw_grob <- rasterGrob(sw_img, interpolate = TRUE)
+#sw_img <- readPNG(here('data/seaweed.png'))
+#sw_grob <- rasterGrob(sw_img, interpolate = TRUE)
 
 # Plot
 pareto_AC_sw <- 
@@ -320,21 +320,46 @@ pareto_AC_sw <-
   aes(x = AC_sw_outcome_perc, y = finances_outcome_perc, color = alpha) +
   geom_point(size = 4) +
   geom_line(col = 'black') +
-  # annotate(geom = 'text', x = 810, y = 800,
-  #          label = 'c', size = 8) +
-  labs(x = '\nEnvironmental suitability', color = 'Alpha\n') +
+  # annotate(geom = 'point', x = wind_decl_suit,
+  #          y = wind_decl_FinFeas, col = 'red', size = 2) +
+  # annotate(geom = 'text', x = 4800, y = 5000,
+  #          label = 'Declared areas', col = 'red', size = 4) +
+  # annotate(geom = 'text', x = 5800, y = 5500,
+  #          label = 'a', size = 8) +
+  # labs(x = '\nEnv. Suitability', y = 'Financial feasibility\n') +
   theme_classic() +
-  theme(axis.title.x = element_text(size = 20),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 15),
-        legend.title = element_text(size = 20),
-        legend.text = element_text(size = 15)) +
-  annotation_custom(sw_grob, xmin = 67, xmax = 70, ymin = 90, ymax = 93)
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 15)) +
+  theme(legend.position = 'none') #+#+
+  #annotation_custom(sw_grob, xmin = 67, xmax = 70, ymin = 90, ymax = 93)
 pareto_AC_sw
 
 # Save
-ggsave(here('output/figures/pareto_AC_sw_plot.png'), pareto_AC_sw)
+ggsave(here('figures/pareto_AC_sw_plot.png'), pareto_AC_sw)
 
+pareto_AC_sw_legend <- 
+  ggplot(dat_opt_AC_sw) +
+  aes(x = AC_sw_outcome_perc, y = finances_outcome_perc, color = alpha) +
+  geom_point(size = 4) +
+  geom_line(col = 'black') +
+  # annotate(geom = 'point', x = wind_decl_suit,
+  #          y = wind_decl_FinFeas, col = 'red', size = 2) +
+  # annotate(geom = 'text', x = 4800, y = 5000,
+  #          label = 'Declared areas', col = 'red', size = 4) +
+  # annotate(geom = 'text', x = 5800, y = 5500,
+  #          label = 'a', size = 8) +
+  # labs(x = '\nEnv. Suitability', y = 'Financial feasibility\n') +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 15)) +
+  theme(legend.position = 'bottom') #+#+
+#annotation_custom(sw_grob, xmin = 67, xmax = 70, ymin = 90, ymax = 93)
+pareto_AC_sw_legend
+
+ggsave(here('figures/pareto_legend.png'), pareto_AC_sw_legend)
+
+# Result
+View(dat_opt_AC_sw)
 
 ### Combine plots
 
