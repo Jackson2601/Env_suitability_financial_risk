@@ -33,6 +33,7 @@ bs_r<-rast(here("Bass_Strait.tif"))
 wind_areas<-st_read(here("wind_farms/Offshore_Renewable_Energy_Infrastructure_Regions.shp")) 
 
 wind_areas2<-wind_areas%>% 
+  st_make_valid(.) %>% 
   mutate(diss = 1) %>% 
   group_by(diss) %>%
   summarise(diss2 = sum(diss,na.rm = T))
@@ -78,6 +79,7 @@ wind_env_map
 ```{r}
 tmap_save(wind_env_map, here("figures/Wind_env_suitability.png"))
 ```
+
 ```{r}
 wind_class<-wind_env
 wind_class[wind_class>0.5]<-NA
@@ -90,18 +92,18 @@ wind_suitable[wind_suitable<0.5]<-NA
 wind_env_map2<-tm_shape(wind_suitable) +
   tm_raster("Wind_suitability",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Env. suitability") +
   tm_shape(wind_class) +
   tm_raster("Wind_suitability",
-            palette = "darkslategrey",
+            palette = "grey29",
             title = "Unsuitable")+
   tm_shape(bs_r) +
-  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+  tm_raster("Bass_Strait.tif", palette = "grey",
             legend.show = FALSE) +  
   tm_shape(wind_areas2) +
   tm_borders("black") +
-  tm_legend(show=FALSE) + 
+  #tm_legend(show=FALSE) + 
   tm_layout(frame = FALSE)
 
 wind_env_map2
@@ -156,14 +158,14 @@ fish_suitable[fish_suitable<0.5]<-NA
 fish_env_map2<-tm_shape(fish_suitable) +
   tm_raster("fish_phi_all_constraints",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Env. suitability") +
   tm_shape(fish_class) +
   tm_raster("fish_phi_all_constraints",
-            palette = "darkslategrey",
+            palette = "grey29",
             title = "Unsuitable")+
   tm_shape(bs_r) +
-  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+  tm_raster("Bass_Strait.tif", palette = "grey",
             legend.show = FALSE) +  
  # tm_shape(wind_areas2) +
  # tm_borders("black") +
@@ -225,14 +227,14 @@ sw_suitable[sw_suitable<0.5]<-NA
 sw_env_map2<-tm_shape(sw_suitable) +
   tm_raster("sum",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Env. suitability") +
   tm_shape(sw_class) +
   tm_raster("sum",
-            palette = "darkslategrey",
+            palette = "grey29",
             title = "Unsuitable")+
   tm_shape(bs_r) +
-  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+  tm_raster("Bass_Strait.tif", palette = "grey",
             legend.show = FALSE) +  
  # tm_shape(wind_areas2) +
  # tm_borders("black") +
@@ -296,14 +298,14 @@ fin_suitable[fin_suitable<0.5]<-NA
 fin_map2<-tm_shape(fin_risk) +
   tm_raster("FinRisk_BS_01.tif",
             style = "cont",
-            palette = "-RdYlGn",
+            palette = "-Blues",
             title = "Conflict risk") +
  # tm_shape(fin_class) +
 #  tm_raster("Aquaculture_ras",
 #            palette = "darkslategrey",
 #            title = "Unsuitable")+
   tm_shape(bs_r) +
-  tm_raster("Bass_Strait.tif", palette = "darkgrey",
+  tm_raster("Bass_Strait.tif", palette = "grey",
             legend.show = FALSE) +  
  # tm_shape(wind_areas2) +
  # tm_borders("black") +

@@ -46,6 +46,7 @@ sw_balanced<-rast(here("AC_sw_balanced_full.tif"))
 wind_areas<-st_read(here("wind_farms/Offshore_Renewable_Energy_Infrastructure_Regions.shp")) 
 
 wind_areas2<-wind_areas%>% 
+  st_make_valid(.) %>% 
   mutate(diss = 1) %>% 
   group_by(diss) %>%
   summarise(diss2 = sum(diss,na.rm = T))
@@ -80,7 +81,7 @@ wind_suitable[wind_suitable<0.5]<-NA
 wind_balance_map<-tm_shape(wind_balanced) +
   tm_raster("wind_balanced_full.tif",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Economic viability",
             breaks = c(0,0.2,0.4,0.6,0.8, 1)) +
  # tm_shape(wind_class) +
@@ -129,7 +130,7 @@ fish_suitable[fish_suitable<0.5]<-NA
 fish_balance_map<-tm_shape(fish_balanced) +
   tm_raster("AC_fish_balanced_full.tif",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Economic viability",
             breaks = c(0,0.2,0.4,0.6,0.8,1)) +
   #tm_shape(fish_class) +
@@ -176,7 +177,7 @@ sw_suitable[sw_suitable<0.5]<-NA
 sw_balance_map<-tm_shape(sw_balanced) +
   tm_raster("AC_sw_balanced_full.tif",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blues",
             title = "Economic viability",
             breaks = c(0,0.2,0.4,0.6,0.8,1)) +
  # tm_shape(sw_class) +
@@ -200,7 +201,7 @@ tmap_save(sw_balance_map, here("figures/Seaweed_win_win_map.png"))
 sw_balance_map<-tm_shape(sw_balanced) +
   tm_raster("AC_sw_balanced_full.tif",
             style = "cont",
-            palette = "RdYlGn",
+            palette = "Blue",
             title = "Economic viability",
             breaks = c(0,0.2,0.4,0.6,0.8,1)) +
  # tm_shape(sw_class) +
